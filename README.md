@@ -10,7 +10,9 @@ For Rancher QA to easily spin up multiple groups of AWS infrastructure for valid
     - one for tcp 80 traffic
 - 1 network load balancer
 
-This Terraform does not include Route 53 because I'm using my own DNS records
+This Terraform does not include Route 53 because I'm using my own DNS records.
+
+The main goal of this terraform is to quickly generate the underlying infrastructure so that you can manually install rke on top of that with your own further customizations. See more on how this is made easy by the output demonstrated in a lower section.
 
 ## How to use it?
 
@@ -34,4 +36,39 @@ aws_subnet_id         = "look-up-your-subnet-id"
 aws_security_group_id = "look-up-security-group-you-want"
 aws_pem_key_name      = "name-of-your-pem-key"
 
+```
+
+## Output
+
+Here is example output that you will receive after running the terraform. You can also get the values again anytime by running: `terraform output`
+
+```tf
+reproduction_module_output = {
+  "instance_private_ip" = [
+    "0.0.0.0",
+    "0.0.0.0",
+    "0.0.0.0",
+  ]
+  "instance_public_ip" = [
+    "0.0.0.0",
+    "0.0.0.0",
+    "0.0.0.0",
+  ]
+  "random_pet_id_for_reproduction" = "sensible-donkey"
+  "reproduction_load_balancer_dns_name" = "the-load-balancer-dns-name-you-need"
+}
+validation_module_output = {
+  "instance_private_ip" = [
+    "0.0.0.0",
+    "0.0.0.0",
+    "0.0.0.0",
+  ]
+  "instance_public_ip" = [
+    "0.0.0.0",
+    "0.0.0.0",
+    "0.0.0.0",
+  ]
+  "random_pet_id_for_validation" = "certain-hog"
+  "validation_load_balancer_dns_name" = "the-load-balancer-dns-name-you-need"
+}
 ```
