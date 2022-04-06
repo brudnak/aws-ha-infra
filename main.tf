@@ -56,7 +56,7 @@ module "latest" {
   aws_pem_key_name      = var.aws_pem_key_name
 }
 
-module "latest" {
+module "head" {
   source                = "./modules/head"
   aws_prefix            = var.aws_prefix
   aws_region            = var.aws_region
@@ -98,5 +98,5 @@ output "latest_module_output" {
 }
 
 output "head_module_output" {
-  value = module.latest
+  value = module.head
 }
