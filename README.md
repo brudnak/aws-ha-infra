@@ -66,6 +66,8 @@ Validation = {
 
 ### Now you can easily use this output to run `rke up` against.
 
+>Copy / paste the output from Terraform into a config file and run `rke up` against it.
+
 ```yaml
 ssh_key_path:
 kubernetes_version:
