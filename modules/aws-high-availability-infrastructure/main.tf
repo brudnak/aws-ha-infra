@@ -4,7 +4,7 @@ resource "random_pet" "random_pet" {
     aws_prefix = "${var.aws_prefix}"
   }
 
-  length    = 3
+  length    = 2
   separator = "-"
 }
 
