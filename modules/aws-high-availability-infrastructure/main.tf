@@ -27,13 +27,13 @@ resource "aws_instance" "aws_instance" {
   }
 
   tags = {
-    Name = "${random_pet.random_pet.keepers.aws_prefix}-${random_pet.random_pet.id}"
+    Name = "${random_pet.random_pet.keepers.aws_prefix}-${random_pet.random_pet.id}${formatdate("MMMDDYY", timestamp())}"
   }
 }
 
 
 resource "aws_lb_target_group" "aws_lb_target_group_80" {
-  name        = "${var.aws_prefix}-80-${random_pet.random_pet.id}"
+  name        = "${var.aws_prefix}-80-${random_pet.random_pet.id}${formatdate("MMMDDYY", timestamp())}"
   port        = 80
   protocol    = "TCP"
   target_type = "instance"
@@ -47,7 +47,7 @@ resource "aws_lb_target_group" "aws_lb_target_group_80" {
 }
 
 resource "aws_lb_target_group" "aws_lb_target_group_443" {
-  name        = "${var.aws_prefix}-443-${random_pet.random_pet.id}"
+  name        = "${var.aws_prefix}-443-${random_pet.random_pet.id}${formatdate("MMMDDYY", timestamp())}"
   port        = 443
   protocol    = "TCP"
   target_type = "instance"
@@ -80,7 +80,7 @@ resource "aws_lb_target_group_attachment" "attach_tg_443" {
 # create a load balancer
 resource "aws_lb" "aws_lb" {
   load_balancer_type = "network"
-  name               = "${var.aws_prefix}-nlb-${random_pet.random_pet.id}"
+  name               = "${var.aws_prefix}-nlb-${random_pet.random_pet.id}${formatdate("MMMDDYY", timestamp())}"
   internal           = false
   ip_address_type    = "ipv4"
   subnets            = [var.aws_subnet_a, var.aws_subnet_b, var.aws_subnet_c]

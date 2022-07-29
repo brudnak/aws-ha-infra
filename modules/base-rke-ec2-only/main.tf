@@ -28,6 +28,6 @@ resource "aws_instance" "aws_instance" {
   }
 
   tags = {
-    Name = "${random_pet.random_pet.keepers.aws_prefix}-${random_pet.random_pet.id}"
+    Name = "${random_pet.random_pet.keepers.aws_prefix}-${random_pet.random_pet.id}${formatdate("MMMDDYY", timestamp())}"
   }
 }
