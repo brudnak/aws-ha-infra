@@ -18,7 +18,7 @@ provider "aws" {
 resource "aws_instance" "aws_instance" {
   count                  = 3
   ami                    = var.aws_ami
-  instance_type          = "t3.2xlarge"
+  instance_type          = "t2.large"
   subnet_id              = var.aws_subnet_id
   vpc_security_group_ids = [var.aws_security_group_id]
   key_name               = var.aws_pem_key_name
