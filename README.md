@@ -1,10 +1,8 @@
-# AWS High Availability Base Infrastructure Setup
+# 🚧 Docs under Construction
+
+# AWS HA RKE Go / Terratest / Terraform
 
 ## What is the purpose of this Terraform?
-For Rancher QA to easily deploy and manage AWS infrastructure for High Availability testing. This creates a base level of infrastructure and outputs public, and private IP addresses for the various nodes. You can quickly transfer these to a config file to run `rke up` against.
-
-
-This Terraform does not include Route 53 DNS records. This is so that you can use your own domain name.
 
 ## How to use it?
 
@@ -29,62 +27,3 @@ aws_pem_key_name      = "name-of-your-pem-key"
 
 ```
 
-## Output
-
-Here is example output that you will receive after running the terraform. You can also get the values again anytime by running: `terraform output`
-
-```tf
-Reproduction = {
-  "balancer_dns_name" = "load balancer to create DNS record with: your-nlb-dns.com"
-  "instance_private_ip" = [
-    "private IP for rke config: 0.0.0.0",
-    "private IP for rke config: 0.0.0.0",
-    "private IP for rke config: 0.0.0.0",
-  ]
-  "instance_public_ip" = [
-    "public IP for rke config: 0.0.0.0",
-    "public IP for rke config: 0.0.0.0",
-    "public IP for rke config: 0.0.0.0",
-  ]
-  "random_pet_id" = "random ID to identify aws resources: ruling-marmot"
-}
-Validation = {
-  "balancer_dns_name" = "load balancer to create DNS record with: your-nlb-dns.com"
-  "instance_private_ip" = [
-    "private IP for rke config: 0.0.0.0",
-    "private IP for rke config: 0.0.0.0",
-    "private IP for rke config: 0.0.0.0",
-  ]
-  "instance_public_ip" = [
-    "public IP for rke config: 0.0.0.0",
-    "public IP for rke config: 0.0.0.0",
-    "public IP for rke config: 0.0.0.0",
-  ]
-  "random_pet_id" = "random ID to identify aws resources: engaging-wahoo"
-}
-```
-
-### Now you can easily use this output to run `rke up` against.
-
->Copy / paste the output from Terraform into a config file and run `rke up` against it.
-
-```yaml
-ssh_key_path:
-kubernetes_version:
-
-nodes:
-  - address:
-    internal_address:
-    user:
-    role: [etcd, controlplane, worker]
-
-  - address:
-    internal_address:
-    user:
-    role: [etcd, controlplane, worker]
-
-  - address:
-    internal_address:
-    user: 
-    role: [etcd, controlplane, worker]
-```
