@@ -9,7 +9,7 @@ terraform {
 }
 
 module "ha-1" {
-  source                = "./modules/aws-high-availability-infrastructure"
+  source                = "./modules/rke-ha"
   aws_prefix            = var.aws_prefix
   aws_access_key        = var.aws_access_key
   aws_secret_key        = var.aws_secret_key
@@ -21,10 +21,11 @@ module "ha-1" {
   aws_subnet_id         = var.aws_subnet_id
   aws_security_group_id = var.aws_security_group_id
   aws_pem_key_name      = var.aws_pem_key_name
+  aws_route53_fqdn      = var.aws_route53_fqdn
 }
 
 module "ha-2" {
-  source                = "./modules/aws-high-availability-infrastructure"
+  source                = "./modules/rke-ha"
   aws_prefix            = var.aws_prefix
   aws_access_key        = var.aws_access_key
   aws_secret_key        = var.aws_secret_key
@@ -36,4 +37,5 @@ module "ha-2" {
   aws_subnet_id         = var.aws_subnet_id
   aws_security_group_id = var.aws_security_group_id
   aws_pem_key_name      = var.aws_pem_key_name
+  aws_route53_fqdn      = var.aws_route53_fqdn
 }

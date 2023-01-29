@@ -109,3 +109,15 @@ resource "aws_lb_listener" "aws_lb_listener_443" {
     target_group_arn = aws_lb_target_group.aws_lb_target_group_443.arn
   }
 }
+
+resource "aws_route53_record" "aws_route53_record" {
+  zone_id = data.aws_route53_zone.zone.zone_id
+  name    = "${var.aws_prefix}-${random_pet.random_pet.id}"
+  type    = "CNAME"
+  ttl     = "60"
+  records = [aws_lb.aws_lb.dns_name]
+}
+
+data "aws_route53_zone" "zone" {
+  name = var.aws_route53_fqdn
+}

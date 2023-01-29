@@ -58,3 +58,8 @@ variable "aws_pem_key_name" {
   type        = string
   description = "The PEM key name to use."
 }
+
+variable "aws_route53_fqdn" {
+  type        = string
+  description = "Your most used fully qualified domain name in AWS Route53."
+}
