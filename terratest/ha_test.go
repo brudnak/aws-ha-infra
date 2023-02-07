@@ -116,7 +116,7 @@ func TestHaSetup(t *testing.T) {
 	bootstrapPassword := viper.GetString("rancher.bootstrap_password")
 
 	CreateInstallScript(infra1URL, leEmail, bootstrapPassword, viper.GetString("ha-1.image"), viper.GetString("ha-1.chart"), 1)
-	CreateInstallScript(infra1URL, leEmail, bootstrapPassword, viper.GetString("ha-2.image"), viper.GetString("ha-2.chart"), 2)
+	CreateInstallScript(infra2URL, leEmail, bootstrapPassword, viper.GetString("ha-2.image"), viper.GetString("ha-2.chart"), 2)
 
 	log.Printf("HA 1 URL: %s", infra1URL)
 	log.Printf("HA 2 URL: %s", infra2URL)
