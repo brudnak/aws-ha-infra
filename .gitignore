@@ -36,3 +36,7 @@ var.auto.tfvars
 
 *config
 tool-config.yml
+*high-availability-1
+*high-availability-2
+cluster.yml
+install.sh
