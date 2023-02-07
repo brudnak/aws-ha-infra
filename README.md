@@ -49,3 +49,7 @@ tf_vars:
 Then you just need to run this function in `ha_test.go` >>> `TestHaSetup`
 
 There is also a cleanup function that you can run in `ha_test.go` >>> `TestHACleanup`
+
+### How Long Does it Take to Run?
+
+Completes `TestHaSetup` in ~4 minutes

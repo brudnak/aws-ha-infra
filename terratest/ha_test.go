@@ -135,10 +135,11 @@ func TestHACleanup(t *testing.T) {
 	RemoveFolder("high-availability-1")
 	RemoveFolder("high-availability-2")
 
-	RemoveFile("../modules/aws/.terraform.lock.hcl")
-	RemoveFile("../modules/aws/.terraform.tfstate")
-	RemoveFile("../modules/aws/.terraform.tfstate.backup")
-	RemoveFile("../modules/aws/.terraform.tfvars")
+	defer RemoveFolder("../modules/aws/.terraform")
+	defer RemoveFile("../modules/aws/.terraform.lock.hcl")
+	defer RemoveFile("../modules/aws/terraform.tfstate")
+	defer RemoveFile("../modules/aws/terraform.tfstate.backup")
+	defer RemoveFile("../modules/aws/terraform.tfvars")
 
 }
 
