@@ -225,17 +225,24 @@ func RemoveFolder(folderPath string) {
 func CreateInstallScript(host, leEmail, bsPassword, image, chart string, ha1Or2 int) {
 
 	var path string
+	var globalPspEnabled bool
+	var installScript string
 
 	if ha1Or2 == 1 {
 		path = "./high-availability-1/install.sh"
+		globalPspEnabled = viper.GetBool("ha-1.global_cattle_psp_enabled")
 	}
 
 	if ha1Or2 == 2 {
 		path = "./high-availability-2/install.sh"
+		globalPspEnabled = viper.GetBool("ha-2.global_cattle_psp_enabled")
 	}
 
-	str := `
+	if globalPspEnabled == true {
+		installScript = `
 #!/bin/sh
+
+export KUBECONFIG=kube_config_cluster.yml
 
 helm repo update
 
@@ -258,7 +265,37 @@ helm install rancher rancher-latest/rancher \
   --set rancherImageTag=` + image + ` \
   --version ` + chart + `
 `
-	f := []byte(str)
+	} else {
+		installScript = `
+#!/bin/sh
+
+export KUBECONFIG=kube_config_cluster.yml
+
+helm repo update
+
+kubectl create namespace cattle-system
+
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
+
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --version v1.7.1
+
+helm install rancher rancher-latest/rancher \
+  --namespace cattle-system \
+  --set hostname=` + host + ` \
+  --set bootstrapPassword=` + bsPassword + ` \
+  --set ingress.tls.source=letsEncrypt \
+  --set letsEncrypt.email=` + leEmail + ` \
+  --set letsEncrypt.ingress.class=nginx \
+  --set rancherImageTag=` + image + ` \
+  --version ` + chart + ` \
+  --set global.cattle.psp.enabled=false
+`
+	}
+
+	f := []byte(installScript)
 	err := os.WriteFile(path, f, 0644)
 
 	if err != nil {
