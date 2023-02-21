@@ -17,17 +17,6 @@ And also a preconfigured installation script that you can run `bash install.sh` 
 
 All you need to do to make this terraform work is to clone the repository and create a file called `tool-config.yml` that sits next to the `README.md`. 
 
-After you run the `TestHaSetup` look in the `terratest` folder, you'll see two additional folders created:
-
-- high-availability-1
-- high-availability-2
-
-These will contain the cluster config you can run `rke up` against with whatever version of `rke` you have preinstalled on your local.
-
-And a pre-configured shell install script you can run `bash install.sh` and it will install Rancher for you.
-
-The cluster config file is created to use the default k8s version for the `rke` version you're using. You may need to add the k8s version field.
-
 How the `tool-config.yml` file should look like:
 
 ```yaml
