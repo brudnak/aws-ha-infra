@@ -253,7 +253,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 helm install cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
-  --version v1.7.1
+  --version v1.11.0
 
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
@@ -280,7 +280,7 @@ kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/
 helm install cert-manager jetstack/cert-manager \
   --namespace cert-manager \
   --create-namespace \
-  --version v1.7.1
+  --version v1.11.0
 
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
