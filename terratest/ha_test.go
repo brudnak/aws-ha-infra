@@ -248,20 +248,11 @@ helm repo update
 
 kubectl create namespace cattle-system
 
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
-
-helm install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --version v1.11.0
-
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
   --set hostname=` + host + ` \
   --set bootstrapPassword=` + bsPassword + ` \
-  --set ingress.tls.source=letsEncrypt \
-  --set letsEncrypt.email=` + leEmail + ` \
-  --set letsEncrypt.ingress.class=nginx \
+  --set tls=external \
   --set rancherImageTag=` + image + ` \
   --version ` + chart + `
 `
@@ -275,20 +266,11 @@ helm repo update
 
 kubectl create namespace cattle-system
 
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.7.1/cert-manager.crds.yaml
-
-helm install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --version v1.11.0
-
 helm install rancher rancher-latest/rancher \
   --namespace cattle-system \
   --set hostname=` + host + ` \
   --set bootstrapPassword=` + bsPassword + ` \
-  --set ingress.tls.source=letsEncrypt \
-  --set letsEncrypt.email=` + leEmail + ` \
-  --set letsEncrypt.ingress.class=nginx \
+  --set tls=external \
   --set rancherImageTag=` + image + ` \
   --version ` + chart + ` \
   --set global.cattle.psp.enabled=false
