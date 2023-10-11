@@ -1,5 +1,9 @@
 # Go / Terratest / Terraform to Create Two Rancher HA Setups
 
+# Webhook Hardening Alert
+
+If wanting to harden the webhook, please see the bottom of this README.md BEFORE running `rke up`.
+
 ## What is the purpose of this Terraform?
 
 For Rancher QA to easily create HA Rancher setups in AWS with RKE1 as the base. 
@@ -55,3 +59,127 @@ There is also a cleanup function that you can run in `ha_test.go` >>> `TestHACle
 ### How Long Does it Take to Run?
 
 Completes `TestHaSetup` in ~4 minutes
+
+### Harden Webhook Guide (TODO: Automate)
+
+#### Step 1. Start with editing the `cluster.yml` file that this repository creates.
+
+1. Add the following to the `cluster.yml` file:
+
+```yaml
+ssh_key_path: your-local-path-to-the-pem-file-you-use-for-aws
+network:
+  plugin: calico
+services:
+  kube-api:
+    extra_args:
+      admission-control-config-file: "/etc/rancher/admission/admission.yaml"
+nodes:
+```
+
+#### Step 2. SSH Into AWS EC2 Instances With Controlplane
+
+- SSH into each controlplane ec2 nodes and create these directories.
+
+  ```sh
+  sudo mkdir /etc/rancher
+  sudo mkdir /etc/rancher/admission
+  ```
+
+- Then exit the SSH session
+- Then have these files on your local machine, and `scp` them onto the controlplane ec2 nodes.
+
+```yaml
+# /etc/rancher/admission/admission.yaml
+apiVersion: apiserver.config.k8s.io/v1
+kind: AdmissionConfiguration
+plugins:
+  - name: ValidatingAdmissionWebhook
+    configuration:
+      apiVersion: apiserver.config.k8s.io/v1
+      kind: WebhookAdmissionConfiguration
+      kubeConfigFile: "/etc/rancher/admission/kubeconfig"
+  - name: MutatingAdmissionWebhook
+    configuration:
+      apiVersion: apiserver.config.k8s.io/v1
+      kind: WebhookAdmissionConfiguration
+      kubeConfigFile: "/etc/rancher/admission/kubeconfig"
+```
+
+```yaml
+# /etc/rancher/admission/kubeconfig
+apiVersion: v1
+kind: Config
+users:
+- name: 'rancher-webhook.cattle-system.svc'
+  user:
+    client-certificate: /path/to/client/cert
+    client-key: /path/to/client/key
+```
+
+- Run the command: `openssl req -newkey rsa:2048 -nodes -keyout client.key -out client.csr -x509 -days 365`
+- Now run these scp commands:
+  - `scp -i ~/your/pem-file.pem admission.yaml ubuntu@0.0.0.0:/etc/rancher/admission/`
+  - `scp -i ~/your/pem-file.pem kubeconfig ubuntu@0.0.0.0:/etc/rancher/admission/`
+  - `scp -i ~/your/pem-file.pem client.csr ubuntu@0.0.0.0:/etc/rancher/admission/`
+  - `scp -i ~/your/pem-file.pem client.key ubuntu@0.0.0.0:/etc/rancher/admission/`
+  - Run these 4 commands against every controlplane node
+
+#### Step 3. Run RKE Up
+
+- Run `rke up` against the `cluster.yml` file that this repository creates. After adding the additional lines to the `cluster.yml` file.
+
+#### Step 4. Install Rancher
+
+#### Step 5. Install Calico CTL On Your Local Machine
+
+https://docs.tigera.io/calico/latest/operations/calicoctl/install
+
+Find the IPs needed for the network.yaml.
+
+Run the following: `calicoctl get node --allow-version-mismatch -o yaml`
+
+If you have 3 controlplane nodes, like the default for this repository sets up, find 3 of these lines.
+
+`ipv4IPIPTunnelAddr: <redacted>`
+
+Take these 3 IPs and add them to the `network.yaml` file. Replacing `<redacted>` with the IP.
+
+```yaml
+apiVersion: crd.projectcalico.org/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-k8s
+  namespace: cattle-system
+spec:
+  selector: app == 'rancher-webhook'
+  types:
+    - Ingress
+  ingress:
+    - action: Allow
+      protocol: TCP
+      source:
+        nets:
+          - <redacted>/32
+          - <redacted>/32
+          - <redacted>/32
+      destination:
+        selector:
+          app == 'rancher-webhook'
+```
+- Then apply the network.yaml with `k apply -f network.yaml`
+
+#### Step 6. Create a values.yaml and delete the rancher-config
+
+- base64 encode the client.csr from earlier.
+- create a values.yaml file
+
+```yaml
+# values.yaml
+auth:
+  clientCA: <base64-string-goes-here>
+```
+
+- delete the rancher-config with `k delete configmap rancher-config -n cattle-system`
+- recreate it with `kubectl --namespace cattle-system create configmap rancher-config --from-file=rancher-webhook=values.yaml`
+- you can check that it was picked up with `helm get values rancher-webhook -n cattle-system`
