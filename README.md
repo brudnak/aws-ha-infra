@@ -60,90 +60,96 @@ There is also a cleanup function that you can run in `ha_test.go` >>> `TestHACle
 
 Completes `TestHaSetup` in ~4 minutes
 
-### Harden Webhook Guide (TODO: Automate)
+# Harden Webhook Guide (TODO: Automate)
 
-#### Step 1. Start with editing the `cluster.yml` file that this repository creates.
+1. Add the following to the `cluster.yml` file **DO NOT RUN RKE UP YET**:
 
-1. Add the following to the `cluster.yml` file:
-
-```yaml
-ssh_key_path: your-local-path-to-the-pem-file-you-use-for-aws
-network:
-  plugin: calico
-services:
-  kube-api:
-    extra_args:
-      admission-control-config-file: "/etc/rancher/admission/admission.yaml"
-nodes:
-```
-
-#### Step 2. SSH Into AWS EC2 Instances With Controlplane
-
-- SSH into each controlplane ec2 nodes and create these directories.
-
-  ```sh
-  sudo mkdir /etc/rancher
-  sudo mkdir /etc/rancher/admission
+  ```yaml
+  ssh_key_path: <redacted>
+  network:
+    plugin: calico
+  services:
+    kube-api:
+      extra_args:
+        admission-control-config-file: "/etc/rancher/admission/admission.yaml"
+      extra_binds:
+        - "/etc/rancher/admission/admission.yaml:/etc/rancher/admission/admission.yaml"
+        - "/etc/rancher/admission/kubeconfig:/etc/rancher/admission/kubeconfig"
+        - "/etc/rancher/admission/client.csr:/etc/rancher/admission/client.csr"
+        - "/etc/rancher/admission/client.key:/etc/rancher/admission/client.key"
+  nodes:
   ```
 
-- Then exit the SSH session
-- Then have these files on your local machine, and `scp` them onto the controlplane ec2 nodes.
+2. SSH into each controlplane ec2 nodes and create these directories.
 
-```yaml
-# /etc/rancher/admission/admission.yaml
-apiVersion: apiserver.config.k8s.io/v1
-kind: AdmissionConfiguration
-plugins:
-  - name: ValidatingAdmissionWebhook
-    configuration:
-      apiVersion: apiserver.config.k8s.io/v1
-      kind: WebhookAdmissionConfiguration
-      kubeConfigFile: "/etc/rancher/admission/kubeconfig"
-  - name: MutatingAdmissionWebhook
-    configuration:
-      apiVersion: apiserver.config.k8s.io/v1
-      kind: WebhookAdmissionConfiguration
-      kubeConfigFile: "/etc/rancher/admission/kubeconfig"
+```sh
+sudo mkdir /etc/rancher
+sudo mkdir /etc/rancher/admission
+sudo chmod 777 /etc/rancher
+sudo chmod 777 /etc/rancher/admission
 ```
 
-```yaml
-# /etc/rancher/admission/kubeconfig
-apiVersion: v1
-kind: Config
-users:
-- name: 'rancher-webhook.cattle-system.svc'
-  user:
-    client-certificate: /path/to/client/cert
-    client-key: /path/to/client/key
-```
+3. Then exit the SSH session
+4. Then have these files on your local machine, and `scp` them onto the controlplane ec2 nodes.
 
-- Run the command: `openssl req -newkey rsa:2048 -nodes -keyout client.key -out client.csr -x509 -days 365`
-- Now run these scp commands:
+  ```yaml
+  # /etc/rancher/admission/admission.yaml
+  apiVersion: apiserver.config.k8s.io/v1
+  kind: AdmissionConfiguration
+  plugins:
+    - name: ValidatingAdmissionWebhook
+      configuration:
+        apiVersion: apiserver.config.k8s.io/v1
+        kind: WebhookAdmissionConfiguration
+        kubeConfigFile: "/etc/rancher/admission/kubeconfig"
+    - name: MutatingAdmissionWebhook
+      configuration:
+        apiVersion: apiserver.config.k8s.io/v1
+        kind: WebhookAdmissionConfiguration
+        kubeConfigFile: "/etc/rancher/admission/kubeconfig"
+  ```
+
+  ```yaml
+  # /etc/rancher/admission/kubeconfig
+  apiVersion: v1
+  kind: Config
+  users:
+  - name: 'rancher-webhook.cattle-system.svc'
+    user:
+      client-certificate: /etc/rancher/admission/client.csr
+      client-key: /etc/rancher/admission/client.key
+  ```
+
+5. Run the command: `openssl req -newkey rsa:2048 -nodes -keyout client.key -out client.csr -x509 -days 365`
+
+
+6. Now run these scp commands:
   - `scp -i ~/your/pem-file.pem admission.yaml ubuntu@0.0.0.0:/etc/rancher/admission/`
   - `scp -i ~/your/pem-file.pem kubeconfig ubuntu@0.0.0.0:/etc/rancher/admission/`
   - `scp -i ~/your/pem-file.pem client.csr ubuntu@0.0.0.0:/etc/rancher/admission/`
   - `scp -i ~/your/pem-file.pem client.key ubuntu@0.0.0.0:/etc/rancher/admission/`
   - Run these 4 commands against every controlplane node
 
-#### Step 3. Run RKE Up
+```sh
+sudo chmod 777 /etc/rancher/admission/admission.yaml
+sudo chmod 777 /etc/rancher/admission/kubeconfig
+sudo chmod 777 /etc/rancher/admission/client.csr
+sudo chmod 777 /etc/rancher/admission/client.key
+```
 
-- Run `rke up` against the `cluster.yml` file that this repository creates. After adding the additional lines to the `cluster.yml` file.
+7. Run `rke up` against the `cluster.yml` file that this repository creates. After adding the additional lines to the `cluster.yml` file.
 
-#### Step 4. Install Rancher
+8. Install Rancher via helm
 
-#### Step 5. Install Calico CTL On Your Local Machine
+9. Install Calico CTL On Your Local Machine: https://docs.tigera.io/calico/latest/operations/calicoctl/install
 
-https://docs.tigera.io/calico/latest/operations/calicoctl/install
+10. Find the IPs needed for the network.yaml.
 
-Find the IPs needed for the network.yaml.
+11. Run the following: `calicoctl get node --allow-version-mismatch -o yaml`
 
-Run the following: `calicoctl get node --allow-version-mismatch -o yaml`
+12. If you have 3 controlplane nodes, like the default for this repository sets up, find 3 of these lines. `ipv4IPIPTunnelAddr: <redacted>`
 
-If you have 3 controlplane nodes, like the default for this repository sets up, find 3 of these lines.
-
-`ipv4IPIPTunnelAddr: <redacted>`
-
-Take these 3 IPs and add them to the `network.yaml` file. Replacing `<redacted>` with the IP.
+13. Take these 3 IPs and add them to the `network.yaml` file. Replacing `<redacted>` with the IP.
 
 ```yaml
 apiVersion: crd.projectcalico.org/v1
@@ -167,12 +173,14 @@ spec:
         selector:
           app == 'rancher-webhook'
 ```
-- Then apply the network.yaml with `k apply -f network.yaml`
 
-#### Step 6. Create a values.yaml and delete the rancher-config
+14.  Then apply the network.yaml with `k apply -f network.yaml`
 
-- base64 encode the client.csr from earlier.
-- create a values.yaml file
+15. Create a values.yaml and delete the rancher-config
+
+16.  base64 encode the client.csr from earlier.
+
+17. create a values.yaml file
 
 ```yaml
 # values.yaml
@@ -180,6 +188,6 @@ auth:
   clientCA: <base64-string-goes-here>
 ```
 
-- delete the rancher-config with `k delete configmap rancher-config -n cattle-system`
-- recreate it with `kubectl --namespace cattle-system create configmap rancher-config --from-file=rancher-webhook=values.yaml`
-- you can check that it was picked up with `helm get values rancher-webhook -n cattle-system`
+18. delete the rancher-config with `k delete configmap rancher-config -n cattle-system`
+19. recreate it with `kubectl --namespace cattle-system create configmap rancher-config --from-file=rancher-webhook=values.yaml`
+20. you can check that it was picked up with `helm get values rancher-webhook -n cattle-system`
