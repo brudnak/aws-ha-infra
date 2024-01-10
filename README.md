@@ -28,7 +28,6 @@ local:
   pem_path: "your-local-path-to-the-pem-file-you-use-for-aws"
 rancher:
   bootstrap_password: whatever-bootstrap-password-you-want
-  le_email: email-you-want-to-use-for-lets-encrypt
 ha-1:
   image: v2.7.1
   chart: 2.7.1

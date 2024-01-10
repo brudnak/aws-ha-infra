@@ -112,11 +112,10 @@ func TestHaSetup(t *testing.T) {
 		infra2Server3IPAddressPrivate,
 		"high-availability-2/cluster.yml")
 
-	leEmail := viper.GetString("rancher.le_email")
 	bootstrapPassword := viper.GetString("rancher.bootstrap_password")
 
-	CreateInstallScript(infra1URL, leEmail, bootstrapPassword, viper.GetString("ha-1.image"), viper.GetString("ha-1.chart"), 1)
-	CreateInstallScript(infra2URL, leEmail, bootstrapPassword, viper.GetString("ha-2.image"), viper.GetString("ha-2.chart"), 2)
+	CreateInstallScript(infra1URL, bootstrapPassword, viper.GetString("ha-1.image"), viper.GetString("ha-1.chart"), 1)
+	CreateInstallScript(infra2URL, bootstrapPassword, viper.GetString("ha-2.image"), viper.GetString("ha-2.chart"), 2)
 
 	log.Printf("HA 1 URL: %s", infra1URL)
 	log.Printf("HA 2 URL: %s", infra2URL)
@@ -222,7 +221,7 @@ func RemoveFolder(folderPath string) {
 	}
 }
 
-func CreateInstallScript(host, leEmail, bsPassword, image, chart string, ha1Or2 int) {
+func CreateInstallScript(host, bsPassword, image, chart string, ha1Or2 int) {
 
 	var path string
 	var globalPspEnabled bool
@@ -239,8 +238,7 @@ func CreateInstallScript(host, leEmail, bsPassword, image, chart string, ha1Or2 
 	}
 
 	if globalPspEnabled == true {
-		installScript = `
-#!/bin/sh
+		installScript = `#!/bin/sh
 
 export KUBECONFIG=kube_config_cluster.yml
 
@@ -257,8 +255,7 @@ helm install rancher rancher-latest/rancher \
   --version ` + chart + `
 `
 	} else {
-		installScript = `
-#!/bin/sh
+		installScript = `#!/bin/sh
 
 export KUBECONFIG=kube_config_cluster.yml
 
