@@ -109,8 +109,6 @@ data "aws_route53_zone" "zone" {
   name = var.aws_route53_fqdn
 }
 
-
-
 resource "aws_acm_certificate" "cert" {
   domain_name       = "${var.aws_prefix}-${random_pet.random_pet.id}.${var.aws_route53_fqdn}"
   validation_method = "DNS"
@@ -119,28 +117,6 @@ resource "aws_acm_certificate" "cert" {
     create_before_destroy = true
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# $$$$$$$$$$$$$
-
-
-
-
-
 
 resource "aws_route53_record" "cert_validation" {
   count = 1
